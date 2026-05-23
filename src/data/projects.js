@@ -53,7 +53,7 @@ export const projects = [
         video: "https://www.youtube.com/shorts/MZD33qTNrRk",
         technologies: ["After Effects", "Canva"],
         category: "portrait",
-        featured: true,
+        featured: false,
     },
     {
         id: 5,
@@ -123,7 +123,7 @@ export const projects = [
         video: "https://www.youtube.com/shorts/_ZwFz5S-sec",
         technologies: ["Premiere Pro"],
         category: "portrait",
-        featured: false,
+        featured: true,
     },
 ];
 
