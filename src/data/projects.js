@@ -11,6 +11,8 @@ import Project7 from '@/assets/steak.jfif';
 import Project8 from '@/assets/sining.png';
 import Project9 from '@/assets/predebut.png';
 import Project10 from '@/assets/mark-port.png';
+import Project11 from '@/assets/Chris.png';
+import Project12 from '@/assets/Luke.png';
 
 export const projects = [
     {
@@ -102,6 +104,26 @@ export const projects = [
         technologies: ["After Effects", "Canva"],
         category: "landscape",
         featured: true,
+    },
+    {
+        id: 10,
+        title: "Success Costs More Than Most People Realize",
+        description: "Motivational quote edit featuring cinematic visuals, impactful pacing, emotional storytelling, and engaging subtitles designed to inspire and connect with viewers.",
+        image: Project11,
+        video: "https://www.youtube.com/shorts/tDklbiAPR_Y",
+        technologies: ["Premiere Pro"],
+        category: "portrait",
+        featured: false,
+    },
+    {
+        id: 11,
+        title: "The Power of Self-Awareness",
+        description: "Podcast-style motivational edit featuring cinematic pacing, emotional storytelling, dynamic captions, and immersive visuals focused on mindset, discipline, and personal growth.",
+        image: Project12,
+        video: "https://www.youtube.com/shorts/_ZwFz5S-sec",
+        technologies: ["Premiere Pro"],
+        category: "portrait",
+        featured: false,
     },
 ];
 
