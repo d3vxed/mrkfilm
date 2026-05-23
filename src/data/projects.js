@@ -70,7 +70,7 @@ export const projects = [
         title: "Mobile Legends & Call of Duty Teaser",
         description: "A teaser video for our school's esports event.",
         image: Project6,
-        video: "https://www.youtube.com/watch?v=_kdfjMOt5O",
+        video: "https://www.youtube.com/watch?v=_kdfjMOt5OE",
         technologies: ["After Effects", "Capcut"],
         category: "landscape",
         featured: false,
