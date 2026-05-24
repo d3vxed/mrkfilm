@@ -13,6 +13,7 @@ import Project9 from '@/assets/predebut.png';
 import Project10 from '@/assets/mark-port.png';
 import Project11 from '@/assets/Chris.png';
 import Project12 from '@/assets/Luke.png';
+import Project13 from '@/assets/student-of-life.png';
 
 export const projects = [
     {
@@ -23,7 +24,7 @@ export const projects = [
         video: "https://www.youtube.com/watch?v=AmVsHUE6duY",
         technologies: ["Premiere Pro", "Capcut", "After Effects"],
         category: "landscape",
-        featured: true,
+        featured: false,
     },
     {
         id: 2,
@@ -113,7 +114,7 @@ export const projects = [
         video: "https://www.youtube.com/shorts/tDklbiAPR_Y",
         technologies: ["Premiere Pro"],
         category: "portrait",
-        featured: false,
+        featured: true,
     },
     {
         id: 11,
@@ -121,6 +122,16 @@ export const projects = [
         description: "Podcast-style motivational edit featuring cinematic pacing, emotional storytelling, dynamic captions, and immersive visuals focused on mindset, discipline, and personal growth.",
         image: Project12,
         video: "https://www.youtube.com/shorts/_ZwFz5S-sec",
+        technologies: ["Premiere Pro"],
+        category: "portrait",
+        featured: false,
+    },
+    {
+        id: 12,
+        title: "Become a Student of Life",
+        description: "Podcast-style motivational edit centered on ego, self-awareness, and personal growth through cinematic storytelling, immersive visuals, emotional pacing, and dynamic subtitles.",
+        image: Project13,
+        video: "https://www.youtube.com/shorts/SMEU1xkdiOk",
         technologies: ["Premiere Pro"],
         category: "portrait",
         featured: true,
