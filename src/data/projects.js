@@ -14,6 +14,7 @@ import Project10 from '@/assets/mark-port.png';
 import Project11 from '@/assets/Chris.png';
 import Project12 from '@/assets/Luke.png';
 import Project13 from '@/assets/student-of-life.png';
+import Project14 from '@/assets/real-estate.png';
 
 export const projects = [
     {
@@ -104,7 +105,7 @@ export const projects = [
         video: "youtube.com/watch?v=bpEbRqFN3B8&feature=youtu.be",
         technologies: ["After Effects", "Canva"],
         category: "landscape",
-        featured: true,
+        featured: false,
     },
     {
         id: 10,
@@ -133,6 +134,16 @@ export const projects = [
         image: Project13,
         video: "https://www.youtube.com/shorts/SMEU1xkdiOk",
         technologies: ["Premiere Pro"],
+        category: "portrait",
+        featured: true,
+    },
+    {
+        id: 13,
+        title: "Real Estate GLENVIEW",
+        description: "A promotional video for a real estate company, showcasing their properties and services.",
+        image: Project14,
+        video: "https://www.youtube.com/shorts/tus7GDVjjPs",
+        technologies: ["After Effects"],
         category: "portrait",
         featured: true,
     },
