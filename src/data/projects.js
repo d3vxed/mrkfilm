@@ -15,6 +15,7 @@ import Project11 from '@/assets/Chris.png';
 import Project12 from '@/assets/Luke.png';
 import Project13 from '@/assets/student-of-life.png';
 import Project14 from '@/assets/real-estate.png';
+import Project15 from '@/assets/chatgpt.png';
 
 export const projects = [
     {
@@ -115,7 +116,7 @@ export const projects = [
         video: "https://www.youtube.com/shorts/tDklbiAPR_Y",
         technologies: ["Premiere Pro"],
         category: "portrait",
-        featured: true,
+        featured: false,
     },
     {
         id: 11,
@@ -145,6 +146,16 @@ export const projects = [
         video: "https://www.youtube.com/shorts/tus7GDVjjPs",
         technologies: ["After Effects"],
         category: "portrait",
+        featured: true,
+    },
+    {
+        id: 14,
+        title: "ChatGpt Doesn't know what 2 + 2 is",
+        description: "A humorous video highlighting the limitations of AI, specifically ChatGPT, in solving simple arithmetic problems.",
+        image: Project15,
+        video: "https://www.youtube.com/watch?v=MdjHLYzzZPw",
+        technologies: ["After Effects"],
+        category: "landscape",
         featured: true,
     },
 ];
