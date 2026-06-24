@@ -16,6 +16,7 @@ import Project12 from '@/assets/Luke.png';
 import Project13 from '@/assets/student-of-life.png';
 import Project14 from '@/assets/real-estate.png';
 import Project15 from '@/assets/chatgpt.png';
+import Project16 from '@/assets/app-thumbnail.png';
 
 export const projects = [
     {
@@ -136,7 +137,7 @@ export const projects = [
         video: "https://www.youtube.com/shorts/SMEU1xkdiOk",
         technologies: ["Premiere Pro"],
         category: "portrait",
-        featured: true,
+        featured: false,
     },
     {
         id: 13,
@@ -154,6 +155,16 @@ export const projects = [
         description: "A humorous video highlighting the limitations of AI, specifically ChatGPT, in solving simple arithmetic problems.",
         image: Project15,
         video: "https://www.youtube.com/watch?v=MdjHLYzzZPw",
+        technologies: ["After Effects"],
+        category: "landscape",
+        featured: true,
+    },
+    {
+        id: 15,
+        title: "Smart Reviewer App Advertisement",
+        description: "I develop an app called Smart Reviewer that helps students review their lessons and prepare for exams. This video serves as an advertisement for the app, highlighting its features and benefits.",
+        image: Project16,
+        video: "https://www.youtube.com/watch?v=feVYRburB0c",
         technologies: ["After Effects"],
         category: "landscape",
         featured: true,
