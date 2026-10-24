@@ -17,6 +17,7 @@ import Project13 from '@/assets/student-of-life.png';
 import Project14 from '@/assets/real-estate.png';
 import Project15 from '@/assets/chatgpt.png';
 import Project16 from '@/assets/app-thumbnail.png';
+import Project17 from '@/assets/D3vxed.png';
 
 export const projects = [
     {
@@ -157,10 +158,20 @@ export const projects = [
         video: "https://www.youtube.com/watch?v=MdjHLYzzZPw",
         technologies: ["After Effects"],
         category: "landscape",
-        featured: true,
+        featured: false,
     },
     {
         id: 15,
+        title: "D3vxedStudio Web Advertisement",
+        description: "A sleek, futuristic web advertisement showcasing d3vxedStudio’s 3D creativity through cinematic visuals, dynamic motion, and modern design. Created in After Effects.",
+        image: Project17,
+        video: "https://www.youtube.com/watch?v=15CLvyDsABU",
+        technologies: ["After Effects"],
+        category: "landscape",
+        featured: true,
+    },
+    {
+        id: 16,
         title: "Smart Reviewer App Advertisement",
         description: "I develop an app called Smart Reviewer that helps students review their lessons and prepare for exams. This video serves as an advertisement for the app, highlighting its features and benefits.",
         image: Project16,
@@ -169,6 +180,7 @@ export const projects = [
         category: "landscape",
         featured: true,
     },
+
 ];
 
 // Top 3 shown on the main profile page
