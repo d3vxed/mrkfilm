@@ -159,17 +159,46 @@ const ProfileContent = () => {
 
       <Section id="about" label="About" title="Behind the edit">
         <div className="grid gap-16 lg:grid-cols-[1.5fr_1fr] lg:gap-24">
-          <div>
-            <Reveal><img src={darkMode ? DarkProfile : LightProfile} alt="Mark Quitaleg" className="mb-10 size-24 rounded-md object-cover grayscale sm:size-32" /></Reveal>
-            <Reveal as="p" className="title text-3xl !leading-[1.1] sm:text-5xl">
-              Started in video editing through necessity, stayed for the craft.{' '}
-              <span className="text-muted">Now heading Media Production at my school&apos;s organization across films, commercials, and live event coverage.</span>
-            </Reveal>
-            <div className="mt-10 max-w-2xl space-y-5 leading-relaxed text-muted sm:text-lg">
-              <Reveal as="p">On the freelance side, I work with clients on social media content, promotional videos, and digital projects where clear communication and clean execution matter as much as technical skill.</Reveal>
-              <Reveal as="p" delay={100}>Alongside editing, I handle graphic design using <span className="text-fg">Photoshop, Illustrator, and Canva</span> for projects that need more than just footage. Currently finishing BS Information Systems at KLD as a consistent <span className="text-fg">Dean&apos;s Lister,</span> which sharpens the systems thinking I bring into every project.</Reveal>
-            </div>
-          </div>
+
+<div>
+  <Reveal>
+    <img
+      src={darkMode ? DarkProfile : LightProfile}
+      alt="Mark Quitaleg"
+      className="mb-10 size-24 rounded-md object-cover grayscale sm:size-32"
+    />
+  </Reveal>
+
+  <Reveal as="p" className="title text-3xl !leading-[1.1] sm:text-5xl">
+    Started in video editing through necessity, stayed for the craft.{' '}
+    <span className="text-muted">
+      Now bringing creative ideas to life through media production, films,
+      commercials, and live event coverage.
+    </span>
+  </Reveal>
+
+  <div className="mt-10 max-w-2xl space-y-5 leading-relaxed text-muted sm:text-lg">
+    <Reveal as="p">
+      As a freelance creative, I collaborate with clients on social media
+      content, promotional videos, and digital projects, combining creative
+      storytelling with clean execution and clear communication.
+    </Reveal>
+
+    <Reveal as="p" delay={100}>
+      Beyond video editing, I work in graphic design using{' '}
+      <span className="text-fg">
+        Photoshop, Illustrator, and Canva
+      </span>{' '}
+      to create cohesive visual experiences. A graduate of Kolehiyo ng Lungsod
+      ng Dasmariñas with a degree in{' '}
+      <span className="text-fg">
+        Bachelor of Science in Information Systems
+      </span>
+      , I bring a balance of creative thinking, technical skills, and a
+      systems-oriented approach to every project.
+    </Reveal>
+  </div>
+</div>
           <ul className="border-t border-line self-start">
             {skills.map(({ icon: Icon, label, sub }, i) => (
               <Reveal as="li" key={label} delay={i * 70} className="flex items-start gap-4 border-b border-line py-5 transition-[padding] duration-500 hover:pl-3">
