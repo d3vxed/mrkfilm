@@ -1,558 +1,254 @@
-// ─── src/Profile.jsx — bryllim.com style, fully responsive, no drawer ────────
-
 import cvFile from '@/assets/CV-video-editor.pdf';
 import LightProfile from '@/assets/bg-light.png';
 import DarkProfile from '@/assets/bg-black.png';
-import {
-  Calendar, Mail, MapPin, Moon, Play, Sun, X,
-  Video, Megaphone, Share2, Sparkles, PenTool, ChevronRight, ChevronLeft,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import YouTube from 'react-youtube';
-
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
-import { featuredProjects } from '@/data/projects';
-import ChatBot from '@/components/ChatBot';
-import VideosPage from '@/pages/VideosPage';
-
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
-const mk = (d) => ({
-  bgStyle:      d ? '#000000'    : '#f4f4f4',
-  bg:           d ? 'bg-[#000000]'    : 'bg-[#f4f4f4]',
-  text:         d ? 'text-[#e8e8e8]'  : 'text-[#0a0a0a]',
-  textSub:      d ? 'text-[#c0c0c0]'  : 'text-[#222222]',
-  textMuted:    d ? 'text-[#555555]'  : 'text-[#888888]',
-  sectionLabel: d ? 'text-[#505050]'  : 'text-[#888888]',
-  divider:      d ? 'border-[#191919]': 'border-[#e2e2e2]',
-  rowBorder:    d ? 'border-[#111111]': 'border-[#ebebeb]',
-  rowHover:     d ? 'hover:bg-[#0a0a0a]' : 'hover:bg-[#ededed]',
-  pill:         d ? 'bg-[#161616] text-[#787878] hover:text-[#b0b0b0]'
-                  : 'bg-[#e8e8e8] text-[#555555] hover:text-[#222222]',
-  tag:          d ? 'bg-[#111111] text-[#555555]' : 'bg-[#e8e8e8] text-[#666666]',
-  btnGhost:     d ? 'border border-[#222222] text-[#686868] hover:text-[#b0b0b0] hover:border-[#3a3a3a]'
-                  : 'border border-[#d8d8d8] text-[#666666] hover:text-[#111111] hover:border-[#aaaaaa]',
-  accentBg:     d ? 'bg-[#408A71] text-[#000000] hover:bg-[#2e2e2e] hover:text-[#b0b0b0] font-semibold'
-                  : 'bg-[#111111] text-white hover:bg-[#333333] font-semibold',
-  widgetBg:     d ? 'bg-[#0c0c0c]' : 'bg-white',
-  widgetLabel:  d ? 'text-[#404040]' : 'text-[#aaaaaa]',
-  iconBg:       d ? 'bg-[#111111]'  : 'bg-[#eeeeee]',
-  iconColor:    d ? 'text-[#4a4a4a] group-hover:text-[#909090]' : 'text-[#999999] group-hover:text-[#444444]',
-  accentStat:   d ? 'text-[#408A71]' : 'text-[#111111]',
-  accentBgRaw:  d ? '#408A71' : '#111111',
-  mutedBgRaw:   d ? '#222222' : '#d8d8d8',
-  activeBox:    d ? 'border-[#555555] bg-[#1a1a1a]' : 'border-[#888888] bg-[#e0e0e0]',
-  inactiveBox:  d ? 'border-[#222222]' : 'border-[#d8d8d8]',
-  eduNote:      d ? 'text-[#408A71]/50' : 'text-[#888888]',
-  footerText:   d ? 'text-[#282828]'   : 'text-[#bbbbbb]',
-  toggleBtn:    d ? 'border border-[#222222] text-[#545454] hover:text-[#b0b0b0] hover:border-[#3a3a3a]'
-                  : 'border border-[#d8d8d8] text-[#999999] hover:text-[#444444] hover:border-[#aaaaaa]',
-});
-
-// ─── VideoPlayer ──────────────────────────────────────────────────────────────
-const VideoPlayer = ({ videoUrl, title, onClose }) => {
-  useEffect(() => {
-    const h = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
-
-  const getVideoId = (url) => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-      /youtube\.com\/embed\/([^&\n?#]+)/,
-      /youtube\.com\/shorts\/([^&\n?#]+)/,
-      /youtube\.com\/live\/([^&\n?#]+)/,
-    ];
-    for (const p of patterns) { const m = url?.match(p); if (m) return m[1]; }
-    return null;
-  };
-
-  const videoId = getVideoId(videoUrl);
-  const opts = { height: '100%', width: '100%', playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0 } };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/98 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl">
-        <div className="flex items-center justify-between mb-2.5">
-          <p className="text-[#e0e0e0] text-xs font-medium truncate pr-4">{title}</p>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-[#555555] hover:text-[#aaaaaa] border border-[#222222] hover:border-[#444444] rounded-sm transition-all flex-shrink-0"
-          >
-            <X size={11} /> ESC
-          </button>
-        </div>
-        <div className="relative aspect-video bg-[#0a0a0a] rounded-sm overflow-hidden">
-          {videoId
-            ? <YouTube videoId={videoId} opts={opts} onReady={(e) => e.target.playVideo()} className="w-full h-full" iframeClassName="w-full h-full" />
-            : videoUrl
-              ? <video src={videoUrl} controls autoPlay className="w-full h-full object-contain" />
-              : <div className="flex items-center justify-center h-full text-[#333333] text-sm">No valid source</div>
-          }
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── ProjectRow ───────────────────────────────────────────────────────────────
-const ProjectRow = ({ project, onWatch, isPlaying, t }) => (
-  <div className={`flex items-center gap-3 py-2.5 border-b ${t.rowBorder} ${t.rowHover} group transition-colors`}>
-    <div className="relative w-20 h-[46px] flex-shrink-0 overflow-hidden rounded-sm grayscale group-hover:grayscale-0 transition-all duration-500">
-      <img src={project.image} alt={project.title} className="w-full h-full object-cover" loading="lazy" />
-      <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <Play size={12} className="text-white ml-0.5" />
-      </div>
-    </div>
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2">
-        <p className={`text-xs font-medium truncate ${t.textSub}`}>{project.title}</p>
-        {isPlaying && (
-          <span className="flex items-center gap-1 text-[9px] text-[#408A71] font-medium flex-shrink-0">
-            <span className="w-1 h-1 rounded-full bg-[#408A71] animate-pulse" /> PLAYING
-          </span>
-        )}
-      </div>
-      <p className={`text-[10px] mt-0.5 truncate ${t.textMuted}`}>{project.description}</p>
-    </div>
-    <div className="hidden sm:flex items-center gap-1">
-      {project.technologies.slice(0, 2).map((tech, i) => (
-        <span key={i} className={`px-1.5 py-0.5 text-[10px] rounded-sm ${t.tag}`}>{tech}</span>
-      ))}
-    </div>
-    <button
-      onClick={() => onWatch(project)}
-      disabled={!project.video}
-      className={`flex-shrink-0 px-2.5 py-1.5 rounded-sm text-[11px] flex items-center gap-1 transition-all ${
-        project.video ? t.btnGhost : `${t.textMuted} cursor-not-allowed`
-      }`}
-    >
-      <Play size={9} /> Watch
-    </button>
-  </div>
-);
-
-// ─── Section + SectionLabel ───────────────────────────────────────────────────
-const Section = ({ children, divider, className = '' }) => (
-  <div className={`pt-6 pb-2 border-t ${divider} ${className}`}>{children}</div>
-);
-
-const SectionLabel = ({ children, action, onAction, labelColor }) => (
-  <div className="flex items-center justify-between mb-4">
-    <span className={`text-[10px] font-semibold tracking-[0.18em] uppercase ${labelColor}`}>{children}</span>
-    {action && (
-      <button onClick={onAction} className="flex items-center gap-1 text-[11px] text-[#555555] hover:text-[#888888] transition-colors">
-        {action} <ChevronRight size={11} />
-      </button>
-    )}
-  </div>
-);
-
 import BtsEditing from '@/assets/editing-session1.jfif';
 import BtsDark from '@/assets/reasearch.jfif';
 import BtsPhotographer from '@/assets/photographer.jfif';
 import BtsCertificate from '@/assets/certficate.jfif';
 import BtsSelf from '@/assets/self.jfif';
-const GALLERY_IMAGES = [
-  { src: BtsEditing, caption: 'Editing session' },
-  { src: BtsDark, caption: 'Awards' },
-  { src: BtsPhotographer, caption: 'Photographer' },
-  { src: BtsCertificate, caption: 'Certificate' },
-  { src: BtsSelf, caption: 'Self Portrait' },
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, Megaphone, PenTool, Play, Share2, Sparkles, Video, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { projects } from '@/data/projects';
+import Header from '@/components/Header';
+import VideoCard from '@/components/VideoCard';
+import VideoModal from '@/components/VideoModal';
+import ChatBot from '@/components/ChatBot';
+import Cursor from '@/components/Cursor';
+import Reveal, { Line } from '@/components/Reveal';
+import VideosPage from '@/pages/VideosPage';
+
+const EMAIL = 'quitalegmj24@gmail.com';
+const rank = (a, b) => Number(b.featured) - Number(a.featured) || a.id - b.id;
+const films = projects.filter((p) => p.category === 'landscape').sort(rank);
+const shorts = projects.filter((p) => p.category === 'portrait').sort(rank);
+const FEATURED = films.slice(0, 3);
+const pad = (n) => String(n).padStart(2, '0');
+
+const techStack = [
+  { label: 'Video', items: ['Premiere Pro', 'After Effects', 'Capcut', 'KineMaster'] },
+  { label: 'Design', items: ['Photoshop', 'Canva', 'Illustrator', 'Figma', 'Lightroom'] },
+  { label: 'Other', items: ['Freepik', 'Pixabay', 'Pexels', 'ChatGPT'] },
 ];
+const skills = [
+  { icon: Video, label: 'Film Editing', sub: 'Premiere Pro · Capcut · Color Grading' },
+  { icon: Megaphone, label: 'Commercial & Ads', sub: 'Premiere Pro · Capcut' },
+  { icon: Share2, label: 'Short-Form Content', sub: 'Capcut · Premiere Pro · After Effects' },
+  { icon: Sparkles, label: 'Trailers & Promos', sub: 'Premiere Pro · After Effects' },
+  { icon: PenTool, label: 'Graphics Design', sub: 'Photoshop · Canva · Illustrator' },
+];
+const experience = [
+  { title: 'Freelance Video Editor', sub: 'WFH', period: '2023 – Present' },
+  { title: 'Head Of Video Editing Team', sub: 'Organization', period: '2023 – 2024' },
+  { title: 'Vice President', sub: 'Multimedia Org', period: '2024 – 2025' },
+];
+const education = [
+  { title: 'Kolehiyo ng Lungsod ng Dasmariñas', sub: "BS Information Systems · Dean's Lister", period: '2022 – Present' },
+  { title: 'Dasmarinas Integrated High School', sub: 'Humanities and Social Sciences · Graduated with honors', period: '2016 – 2022' },
+];
+const stats = [['50+', 'Projects'], ['20+', 'Clients'], ['3', 'Years']];
+const gallery = [[BtsEditing, 'Editing session'], [BtsDark, 'Awards'], [BtsPhotographer, 'Photographer'], [BtsCertificate, 'Certificate'], [BtsSelf, 'Self portrait']];
 
-const FilmstripGallery = ({ t }) => {
-  const trackRef = useRef(null);
-  const timerRef = useRef(null);
-  const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
+const wrap = 'mx-auto max-w-7xl px-5 sm:px-10';
 
-  // Single effect owns the interval — restarts cleanly when paused changes
-  useEffect(() => {
-    if (paused) return;
-    timerRef.current = setInterval(() => {
-      setActive(prev => (prev + 1) % GALLERY_IMAGES.length);
-    }, 3000);
-    return () => clearInterval(timerRef.current); // always clears before next run
-  }, [paused]);
+const Section = ({ id, label, title, action, children }) => (
+  <section id={id} className="scroll-mt-16 border-t border-line py-20 sm:py-32">
+    <div className={wrap}>
+      <Reveal className="mb-12 flex items-end justify-between gap-4 sm:mb-16">
+        <div><p className="label">{label}</p><h2 className="title mt-4 text-4xl sm:text-6xl">{title}</h2></div>
+        {action}
+      </Reveal>
+      {children}
+    </div>
+  </section>
+);
 
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const item = track.children[active];
-    if (!item) return;
-    const offset = item.offsetLeft - track.offsetWidth / 2 + item.offsetWidth / 2;
-    track.scrollTo({ left: offset, behavior: 'smooth' });
-  }, [active]);
+const Rows = ({ items }) => (
+  <ul className="border-t border-line">
+    {items.map((e, i) => (
+      <Reveal as="li" key={e.title} delay={i * 80} className="flex items-start justify-between gap-4 border-b border-line py-5">
+        <div className="min-w-0"><p className="font-medium">{e.title}</p><p className="mt-1 text-sm text-muted">{e.sub}</p></div>
+        <span className="shrink-0 pt-0.5 font-mono text-xs text-muted">{e.period}</span>
+      </Reveal>
+    ))}
+  </ul>
+);
 
-  const prev = () => {
-    setActive(i => (i - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length);
-  };
-  const next = () => {
-    setActive(i => (i + 1) % GALLERY_IMAGES.length);
-  };
-
-  return (
-    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-
-      {/* Filmstrip track */}
-      <div
-        ref={trackRef}
-        className="flex gap-1.5 overflow-x-hidden"
-        style={{ scrollbarWidth: 'none' }}
-      >
-        {GALLERY_IMAGES.map((img, i) => (
-          <button
-            key={i}
-            onClick={() => setActive(i)}
-            style={{ height: '100px', flexShrink: 0, width: i === active ? '180px' : '68px', transition: 'width 0.4s ease, opacity 0.4s ease' }}
-            className={`relative overflow-hidden rounded-sm ${i === active ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale hover:opacity-50'}`}
-          >
-            <img src={img.src} alt={img.caption} className="w-full h-full object-cover" loading="lazy" />
-            {i === active && (
-              <div className="absolute bottom-0 inset-x-0 px-2 py-1" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}>
-                <p className="text-[9px] text-white/70 truncate">{img.caption}</p>
-              </div>
-            )}
-          </button>
-        ))}
+/* Hero: plain and minimal. Text only, no media. */
+const Hero = ({ onPlay }) => (
+  <section id="top" className="flex min-h-[100svh] flex-col pt-16">
+    <div className={`${wrap} flex flex-1 flex-col justify-center py-20`}>
+      <Reveal><p className="label">Video editor · Freelance · Dasmariñas, PH</p></Reveal>
+      <Reveal mask className="title mt-6 max-w-5xl text-[13vw] sm:text-7xl lg:text-8xl"><Line>Video editing for films, ads &amp; short-form.</Line></Reveal>
+      <Reveal delay={300} as="p" className="mt-8 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+        <span className="font-medium text-fg">Mark Quitaleg.</span> Films, commercials, trailers and social content, from planning to final export.
+      </Reveal>
+      <Reveal delay={450} className="mt-10 flex flex-wrap gap-4">
+        <button onClick={() => onPlay(FEATURED[0])} className="btn btn-solid"><Play size={13} fill="currentColor" /> Play featured</button>
+        <a href="#featured" className="btn">Featured videos <ArrowRight size={14} /></a>
+      </Reveal>
+    </div>
+    <div className="border-t border-line">
+      <div className={`${wrap} flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-5`}>
+        <p className="flex items-center gap-2 text-sm text-muted"><span className="size-1.5 rounded-full bg-fg" /> Open for freelance projects</p>
+        <div className="flex items-center gap-8">
+          {stats.map(([v, l]) => <p key={l} className="flex items-baseline gap-2"><span className="text-xl font-semibold tracking-tight">{v}</span><span className="label">{l}</span></p>)}
+        </div>
       </div>
+    </div>
+  </section>
+);
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mt-2.5">
-
-        {/* Dot indicators */}
-        <div className="flex items-center gap-1">
-          {GALLERY_IMAGES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              style={{
-                width: i === active ? '12px' : '4px',
-                height: '3px',
-                borderRadius: '2px',
-                transition: 'all 0.3s ease',
-                background: i === active ? t.accentBgRaw : t.mutedBgRaw,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Prev / counter / Next */}
-        <div className="flex items-center gap-1.5">
-          <button onClick={prev} className={`flex items-center justify-center w-6 h-6 rounded-sm transition-all ${t.btnGhost}`}>
-            <ChevronLeft size={10} />
-          </button>
-          <span className={`text-[10px] tabular-nums w-8 text-center ${t.textMuted}`}>
-            {active + 1}/{GALLERY_IMAGES.length}
-          </span>
-          <button onClick={next} className={`flex items-center justify-center w-6 h-6 rounded-sm transition-all ${t.btnGhost}`}>
-            <ChevronRight size={10} />
-          </button>
-        </div>
-
+/* Gallery: asymmetric grid, greyscale to colour on hover, click for a full-screen viewer. */
+const Lightbox = ({ i, set }) => {
+  useEffect(() => {
+    const n = gallery.length;
+    const k = (e) => { if (e.key === 'Escape') set(null); if (e.key === 'ArrowRight') set((v) => (v + 1) % n); if (e.key === 'ArrowLeft') set((v) => (v - 1 + n) % n); };
+    window.addEventListener('keydown', k);
+    const o = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = o; };
+  }, [set]);
+  const [src, cap] = gallery[i];
+  const n = gallery.length;
+  return (
+    <div data-nocursor onClick={() => set(null)} className="fixed inset-0 z-50 grid place-items-center bg-black/95 p-4 pb-20">
+      <img src={src} alt={cap} className="max-h-[78vh] max-w-full rounded-md object-contain" />
+      <button onClick={() => set(null)} aria-label="Close" className="absolute right-5 top-5 grid size-10 place-items-center border border-white/25 text-white hover:bg-white/10"><X size={18} /></button>
+      <div onClick={(e) => e.stopPropagation()} className="absolute inset-x-0 bottom-0 flex items-center justify-between p-5 font-mono text-xs uppercase tracking-widest text-white/70">
+        <span>{pad(i + 1)} / {pad(n)} — {cap}</span>
+        <span className="flex gap-2">
+          <button onClick={() => set((i - 1 + n) % n)} aria-label="Previous" className="grid size-10 place-items-center border border-white/25 text-white hover:bg-white/10"><ChevronLeft size={18} /></button>
+          <button onClick={() => set((i + 1) % n)} aria-label="Next" className="grid size-10 place-items-center border border-white/25 text-white hover:bg-white/10"><ChevronRight size={18} /></button>
+        </span>
       </div>
     </div>
   );
 };
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-const SidebarContent = ({ t, handleEmail, skills }) => (
-  <div className="space-y-3">
-    <div>
-      <SectionLabel labelColor={t.sectionLabel}>Skills</SectionLabel>
-      <div>
-        {skills.map((s, i) => (
-          <div key={i} className={`flex items-start gap-2 py-2 border-b ${t.rowBorder} group cursor-default`}>
-            <div className={`w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-sm mt-0.5 ${t.iconBg}`}>
-              <s.icon size={10} className={`transition-colors ${t.iconColor}`} />
-            </div>
-            <div className="min-w-0 flex-1 text-left">
-              <p className={`text-[11px] font-medium leading-tight truncate ${t.textSub}`}>{s.label}</p>
-              <p className={`text-[10px] leading-tight truncate ${t.textMuted}`}>{s.sub}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div className={`rounded-sm p-2.5 ${t.widgetBg}`}>
-      <p className={`text-[10px] tracking-[0.14em] uppercase mb-3 ${t.widgetLabel}`}>Portfolio Stats</p>
-      <div className="space-y-2.5">
-        {[
-          { label: 'Projects Done',  value: '50+' },
-          { label: 'Clients Served', value: '20+' },
-          { label: 'Years Active',   value: '3'   },
-        ].map((stat, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <span className={`text-[11px] ${t.textMuted}`}>{stat.label}</span>
-            <span className={`text-sm font-semibold ${t.accentStat}`}>{stat.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div className={`rounded-sm p-2.5 ${t.widgetBg}`}>
-      <p className={`text-xs mb-2.5 leading-relaxed ${t.textSub}`}>Available for freelance projects and collaborations.</p>
-      <button onClick={handleEmail} className={`w-full py-1.5 text-xs rounded-sm transition-all ${t.accentBg}`}>
-        Get in touch
-      </button>
-    </div>
-  </div>
-);
-
-// ─── Main Profile ─────────────────────────────────────────────────────────────
 const ProfileContent = () => {
-  const { darkMode, toggleDark } = useTheme();
-  const t = mk(darkMode);
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    document.documentElement.style.backgroundColor = t.bgStyle;
-    document.body.style.backgroundColor = t.bgStyle;
-  }, [darkMode]);
-
-  const handleDownloadCV = () => {
-    const a = document.createElement('a');
-    a.href = cvFile; a.download = 'Mark_Quitaleg_CV.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  };
-
-  const handleEmail = () => {
-    window.location.href = 'mailto:quitalegmj24@gmail.com?subject=Inquiry from Portfolio&body=Hello Mark,';
-  };
-
-  const techStack = [
-    { label: 'Video',  items: ['Premiere Pro', 'After Effects', 'Capcut', 'KineMaster'] },
-    { label: 'Design', items: ['Photoshop', 'Canva', 'Illustrator', 'Figma', 'Lightroom'] },
-    { label: 'Other',  items: ['Freepik', 'Pixabay', 'Pexels', 'ChatGPT'] },
-  ];
-
-  const skills = [
-    { icon: Video,     label: 'Film Editing',       sub: 'Premiere Pro · Capcut · Color Grading' },
-    { icon: Megaphone, label: 'Commercial & Ads',   sub: 'Premiere Pro · Capcut' },
-    { icon: Share2,    label: 'Short-Form Content', sub: 'Capcut · Premiere Pro · After Effects' },
-    { icon: Sparkles,  label: 'Trailers & Promos',  sub: 'Premiere Pro · After Effects' },
-    { icon: PenTool,   label: 'Graphics Design',    sub: 'Photoshop · Canva · Illustrator' },
-  ];
-
-  const experience = [
-    { role: 'Freelance Video Editor',     org: 'WFH',            period: '2023 – Present', active: true  },
-    { role: 'Head Of Video Editing Team', org: 'Organization',   period: '2023 – 2024',    active: false },
-    { role: 'Vice President',             org: 'Multimedia Org', period: '2024 – 2025',    active: false },
-  ];
-
-  const education = [
-    { institution: 'Kolehiyo ng Lungsod ng Dasmariñas', degree: 'BS Information Systems',        period: '2022 – Present', note: "Dean's Lister",        active: true  },
-    { institution: 'Dasmarinas Integrated High School', degree: 'Humanities and Social Sciences', period: '2016 – 2022',    note: 'Graduated with honors', active: false },
-  ];
+  const { darkMode } = useTheme();
+  const [playing, setPlaying] = useState(null);
+  const [box, setBox] = useState(null);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${t.bg}`} style={{ backgroundColor: t.bgStyle }}>
-      {selectedVideo && (
-        <VideoPlayer videoUrl={selectedVideo.video} title={selectedVideo.title} onClose={() => setSelectedVideo(null)} />
-      )}
+    <div className="page-in min-h-screen">
+      {playing && <VideoModal project={playing} onClose={() => setPlaying(null)} />}
+      {box !== null && <Lightbox i={box} set={setBox} />}
+      <Header />
+      <Hero onPlay={setPlaying} />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-
-        {/* ── HERO ──────────────────────────────────────────────────────────── */}
-        <div className={`pb-6 border-b ${t.divider}`}>
-          <div className="flex items-start justify-between gap-2">
-
-            <div className="flex items-start gap-3 min-w-0 flex-1">
-              <div className="w-16 h-16 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-sm">
-                <img
-                  src={darkMode ? DarkProfile : LightProfile}
-                  alt="Mark Quitaleg"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="min-w-0 flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <h1 className={`text-sm sm:text-lg font-semibold tracking-tight leading-tight ${t.text}`}>
-                    Mark Quitaleg
-                  </h1>
-                  <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" viewBox="0 0 22 22">
-                    <path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" fill="#1d9bf0"/>
-                  </svg>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <MapPin size={9} className={`flex-shrink-0 ${t.textMuted}`} />
-                  <span className={`text-[10px] leading-tight ${t.textMuted}`}>
-                    Dasmariñas Cavite, Philippines
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1 flex-wrap">
-                  <span className={`text-[10px] sm:text-[11px] ${t.textSub}`}>Video Editor · Freelance</span>
-                  <span className={`text-[10px] sm:text-[11px] ${t.textMuted}`}>· 22 y/o</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={toggleDark}
-                className={`p-1.5 rounded-sm transition-all ${t.toggleBtn}`}
-                title={darkMode ? 'Light mode' : 'Dark mode'}
-              >
-                {darkMode ? <Sun size={12} /> : <Moon size={12} />}
-              </button>
-              <button
-                onClick={handleDownloadCV}
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-sm text-[11px] transition-all ${t.btnGhost}`}
-              >
-                <Calendar size={11} />
-                <span className="hidden sm:inline">CV</span>
-              </button>
-              <button
-                onClick={handleEmail}
-                className={`flex items-center gap-1 px-2 py-1.5 rounded-sm text-[11px] transition-all ${t.accentBg}`}
-              >
-                <Mail size={11} />
-                <span className="hidden sm:inline">Email</span>
-              </button>
-            </div>
-
-          </div>
+      <Section id="featured" label="Featured" title="Featured videos">
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-3">
+          {FEATURED.map((p, i) => <Reveal key={p.id} delay={i * 120}><VideoCard project={p} onPlay={setPlaying} index={i} /></Reveal>)}
         </div>
+      </Section>
 
-        {/* ── BODY ──────────────────────────────────────────────────────────── */}
-        <div className="flex gap-10 xl:gap-12 items-start">
+      <Section id="work" label={`Selected work · ${projects.length} videos`} title="Films & promos"
+        action={<Link to="/videos" className="ul hidden shrink-0 items-center gap-2 text-sm font-medium sm:flex">View all <ArrowUpRight size={16} /></Link>}>
+        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {films.slice(3, 9).map((p, i) => <Reveal key={p.id} delay={(i % 3) * 120}><VideoCard project={p} onPlay={setPlaying} index={i} /></Reveal>)}
+        </div>
+        <Reveal className="mb-10 mt-24"><p className="label">Vertical</p><h3 className="title mt-4 text-3xl sm:text-5xl">Shorts</h3></Reveal>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+          {shorts.slice(0, 4).map((p, i) => <Reveal key={p.id} delay={i * 120} className={i % 2 ? 'lg:mt-14' : ''}><VideoCard project={p} onPlay={setPlaying} tall index={i} /></Reveal>)}
+        </div>
+        <Reveal className="mt-16"><Link to="/videos" className="btn">Open full video library <ArrowRight size={14} /></Link></Reveal>
+      </Section>
 
-          <div className="flex-1 min-w-0">
-
-            {/* About */}
-            <Section divider={t.divider}>
-              <SectionLabel labelColor={t.sectionLabel}>About</SectionLabel>
-              <div className={`space-y-2.5 text-xs sm:text-sm leading-relaxed ${t.textSub}`}>
-                <p>Started in video editing through necessity, stayed for the craft. Now heading Media Production at my school's organization, overseeing everything from pre-production planning to final export across <span className={t.text}>films, commercials, and live event coverage.</span></p>
-                <p>On the freelance side, I work with clients on social media content, promotional videos, and digital projects where clear communication and clean execution matter as much as technical skill.</p>
-                <p>Alongside editing, I handle graphic design using <span className={t.text}>Photoshop, Illustrator, and Canva</span> for projects that need more than just footage. Currently finishing BS Information Systems at KLD as a consistent <span className={t.text}>Dean's Lister,</span> which sharpens the systems thinking I bring into every project.</p>
-              </div>
-            </Section>
-
-            {/* Tech Stack */}
-            <Section divider={t.divider}>
-              <SectionLabel labelColor={t.sectionLabel}>Tech Stack</SectionLabel>
-              <div className="space-y-2.5">
-                {techStack.map((group, gi) => (
-                  <div key={gi} className="flex items-start gap-3">
-                    <span className={`text-[10px] w-10 flex-shrink-0 pt-0.5 ${t.textMuted}`}>{group.label}</span>
-                    <div className="flex flex-wrap gap-1">
-                      {group.items.map((item, ii) => (
-                        <span key={ii} className={`px-2 py-0.5 rounded-sm text-[10px] sm:text-[11px] transition-all cursor-default ${t.pill}`}>
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Section>
-
-            {/* Recent Projects */}
-            <Section divider={t.divider}>
-              <SectionLabel labelColor={t.sectionLabel} action="View All" onAction={() => navigate('/videos')}>
-                Recent Projects
-              </SectionLabel>
-              <div>
-                {featuredProjects.map(p => (
-                  <ProjectRow key={p.id} project={p} onWatch={setSelectedVideo} isPlaying={selectedVideo?.id === p.id} t={t} />
-                ))}
-              </div>
-            </Section>
-
-            {/* Experience + Education side by side */}
-            <Section divider={t.divider}>
-              <div className="grid grid-cols-2 gap-4">
-
-                <div className="text-left">
-                  <SectionLabel labelColor={t.sectionLabel}>Experience</SectionLabel>
-                  <div>
-                    {experience.map((e, i) => (
-                      <div key={i} className={`flex items-start gap-2 py-2 border-b ${t.rowBorder}`}>
-                        <div className={`w-2.5 h-2.5 mt-[3px] flex-shrink-0 rounded-sm border ${e.active ? t.activeBox : t.inactiveBox}`} />
-                        <div className="min-w-0 text-left">
-                          <p className={`text-[11px] font-medium leading-snug ${t.textSub}`}>{e.role}</p>
-                          <p className={`text-[10px] ${t.textMuted}`}>{e.org}</p>
-                          <p className={`text-[10px] ${t.textMuted}`}>{e.period}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="text-left">
-                  <SectionLabel labelColor={t.sectionLabel}>Education</SectionLabel>
-                  <div>
-                    {education.map((e, i) => (
-                      <div key={i} className={`flex items-start gap-2 py-2 border-b ${t.rowBorder}`}>
-                        <div className={`w-2.5 h-2.5 mt-[3px] flex-shrink-0 rounded-sm border ${e.active ? t.activeBox : t.inactiveBox}`} />
-                        <div className="min-w-0 text-left">
-                          <p className={`text-[11px] font-medium leading-snug ${t.textSub}`}>{e.institution}</p>
-                          <p className={`text-[10px] mt-0.5 ${t.textMuted}`}>{e.degree}</p>
-                          <p className={`text-[10px] mt-0.5 ${t.eduNote}`}>{e.note}</p>
-                          <p className={`text-[10px] ${t.textMuted}`}>{e.period}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            </Section>
-
-            {/* Behind the Scenes Gallery */}
-            <Section divider={t.divider}>
-              <SectionLabel labelColor={t.sectionLabel}>Behind the Scenes</SectionLabel>
-              <FilmstripGallery t={t} />
-            </Section>
-
-            {/* Sidebar inline on mobile */}
-            <div className="lg:hidden">
-              <Section divider={t.divider}>
-                <SidebarContent t={t} handleEmail={handleEmail} skills={skills} />
-              </Section>
-            </div>
-
-          </div>
-
-          {/* Desktop sticky sidebar */}
-          <div className="w-48 xl:w-52 flex-shrink-0 hidden lg:block">
-            <div className="sticky top-8">
-              <div className={`pt-6 border-t ${t.divider}`}>
-                <SidebarContent t={t} handleEmail={handleEmail} skills={skills} />
-              </div>
+      <Section id="about" label="About" title="Behind the edit">
+        <div className="grid gap-16 lg:grid-cols-[1.5fr_1fr] lg:gap-24">
+          <div>
+            <Reveal><img src={darkMode ? DarkProfile : LightProfile} alt="Mark Quitaleg" className="mb-10 size-24 rounded-md object-cover grayscale sm:size-32" /></Reveal>
+            <Reveal as="p" className="title text-3xl !leading-[1.1] sm:text-5xl">
+              Started in video editing through necessity, stayed for the craft.{' '}
+              <span className="text-muted">Now heading Media Production at my school&apos;s organization across films, commercials, and live event coverage.</span>
+            </Reveal>
+            <div className="mt-10 max-w-2xl space-y-5 leading-relaxed text-muted sm:text-lg">
+              <Reveal as="p">On the freelance side, I work with clients on social media content, promotional videos, and digital projects where clear communication and clean execution matter as much as technical skill.</Reveal>
+              <Reveal as="p" delay={100}>Alongside editing, I handle graphic design using <span className="text-fg">Photoshop, Illustrator, and Canva</span> for projects that need more than just footage. Currently finishing BS Information Systems at KLD as a consistent <span className="text-fg">Dean&apos;s Lister,</span> which sharpens the systems thinking I bring into every project.</Reveal>
             </div>
           </div>
-
+          <ul className="border-t border-line self-start">
+            {skills.map(({ icon: Icon, label, sub }, i) => (
+              <Reveal as="li" key={label} delay={i * 70} className="flex items-start gap-4 border-b border-line py-5 transition-[padding] duration-500 hover:pl-3">
+                <Icon size={18} className="mt-0.5 shrink-0" />
+                <div><p className="font-medium">{label}</p><p className="mt-1 text-sm text-muted">{sub}</p></div>
+              </Reveal>
+            ))}
+          </ul>
         </div>
 
-        {/* Footer */}
-        <div className={`mt-10 pt-5 border-t ${t.divider} flex items-center justify-between`}>
-          <p className={`text-[11px] ${t.footerText}`}>© {new Date().getFullYear()} Mark Quitaleg</p>
-          <p className={`text-[11px] ${t.footerText}`}>Video Editor · Dasmariñas, PH</p>
+        <div className="mt-24 space-y-6">
+          <Reveal><p className="label">Tools</p></Reveal>
+          {techStack.map((g, gi) => (
+            <Reveal key={g.label} delay={gi * 100} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+              <span className="label w-16 shrink-0">{g.label}</span>
+              <div className="flex flex-wrap gap-2">
+                {g.items.map((t) => <span key={t} className="border border-line px-4 py-2 text-sm transition-colors duration-300 hover:bg-fg hover:text-bg">{t}</span>)}
+              </div>
+            </Reveal>
+          ))}
         </div>
 
-      </div>
+        <div className="mt-24 grid gap-16 md:grid-cols-2 md:gap-20">
+          <div><p className="label mb-5">Experience</p><Rows items={experience} /></div>
+          <div><p className="label mb-5">Education</p><Rows items={education} /></div>
+        </div>
+      </Section>
 
+      <Section id="gallery" label="Gallery" title="Behind the scenes">
+        <div className="grid grid-cols-2 gap-3 lg:h-[640px] lg:grid-cols-4 lg:grid-rows-2">
+          {gallery.map(([src, cap], i) => (
+            <Reveal key={cap} delay={i * 90} className={`h-full ${i === 0 ? 'col-span-2 lg:row-span-2' : ''}`}>
+              <button onClick={() => setBox(i)} aria-label={`Open ${cap}`} className={`group relative block h-full w-full overflow-hidden rounded-md bg-surface ${i === 0 ? 'aspect-video lg:aspect-auto' : 'aspect-square lg:aspect-auto'}`}>
+                <img src={src} alt={cap} loading="lazy" className="h-full w-full object-cover grayscale transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0" />
+                <span className="absolute left-3 top-3 bg-black/70 px-2 py-1 font-mono text-[10px] tracking-widest text-white backdrop-blur">{pad(i + 1)}</span>
+                <span className="absolute inset-x-0 bottom-0 translate-y-3 bg-gradient-to-t from-black/80 to-transparent p-4 pt-10 text-left font-mono text-[11px] uppercase tracking-widest text-white opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">{cap}</span>
+              </button>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <section id="contact" className="scroll-mt-16 border-t border-line py-24 sm:py-40">
+        <div className={wrap}>
+          <Reveal><p className="label">Contact · Available for freelance projects and collaborations</p></Reveal>
+          <Reveal delay={100} as="a" href={`mailto:${EMAIL}?subject=Inquiry from Portfolio&body=Hello Mark,`} className="ul title mt-8 block break-all text-[9vw] sm:text-[6.5vw]">{EMAIL}</Reveal>
+          <Reveal delay={200} className="mt-12 flex flex-wrap gap-4">
+            <a href={cvFile} download="Mark_Quitaleg_CV.pdf" className="btn btn-solid"><Download size={14} /> Download CV</a>
+            <Link to="/videos" className="btn">Watch all videos</Link>
+          </Reveal>
+        </div>
+      </section>
+
+      <footer className="border-t border-line py-8">
+        <div className={`${wrap} flex flex-col gap-1 text-sm text-muted sm:flex-row sm:justify-between`}>
+          <p>© {new Date().getFullYear()} Mark Quitaleg</p><p>Video Editor · Dasmariñas, PH</p>
+        </div>
+      </footer>
       <ChatBot darkMode={darkMode} />
     </div>
   );
 };
 
-// ─── Router root ──────────────────────────────────────────────────────────────
+/* Every route change starts at the top. */
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, [pathname]);
+  return null;
+};
+
 const Profile = () => (
   <ThemeProvider>
     <Router>
+      <ScrollToTop />
+      <Cursor />
       <Routes>
-        <Route path="/"       element={<ProfileContent />} />
+        <Route path="/" element={<ProfileContent />} />
         <Route path="/videos" element={<VideosPage />} />
+        <Route path="*" element={<ProfileContent />} />
       </Routes>
     </Router>
   </ThemeProvider>

@@ -1,8 +1,11 @@
-// ─── src/components/ChatBot.jsx ──────────────────────────────────────────────
+
 import { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, MessageSquare, ChevronDown } from "lucide-react";
 import LightProfile from "@/assets/bg-light.png";
 import DarkProfile  from "@/assets/bg-black.png";
+
+// Groq retired llama-3.3-70b-versatile on 2026-08-16. Override with VITE_GROQ_MODEL in .env if needed.
+const MODEL = import.meta.env.VITE_GROQ_MODEL || "openai/gpt-oss-120b";
 
 const SYSTEM_PROMPT = `You are a friendly AI assistant embedded in Mark Quitaleg's personal portfolio website. Your job is to help visitors learn about Mark and his work.
 
@@ -64,6 +67,12 @@ const ChatBot = ({ darkMode }) => {
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
+    if (!import.meta.env.VITE_GROQ_API_KEY) {
+      console.error("[ChatBot] VITE_GROQ_API_KEY is missing. Add it to .env and restart the dev server.");
+      setMessages(prev => [...prev, { role: "user", content: text }, { role: "assistant", content: import.meta.env.DEV ? "Chat error: VITE_GROQ_API_KEY is missing. Add it to a .env file and restart npm run dev." : "Sorry, the assistant is unavailable right now. Please email Mark directly." }]);
+      setInput("");
+      return;
+    }
     const history = [...messages, { role: "user", content: text }];
     setMessages(history);
     setInput("");
@@ -73,12 +82,18 @@ const ChatBot = ({ darkMode }) => {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", max_tokens: 1000, temperature: 0.7,
+          model: MODEL, max_tokens: 1500, temperature: 0.7,
+          ...(MODEL.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history.map(m => ({ role: m.role, content: m.content }))],
         }),
       });
       const data  = await res.json();
-      const reply = data.choices?.[0]?.message?.content ?? "Sorry, something went wrong.";
+      let reply = data.choices?.[0]?.message?.content;
+      if (!reply) {
+        const detail = data.error?.message || `HTTP ${res.status}`;
+        console.error("[ChatBot] Groq error:", detail, data);
+        reply = import.meta.env.DEV ? `Chat error: ${detail}` : "Sorry, the assistant is unavailable right now. Please email Mark directly.";
+      }
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Network error — please try again." }]);
@@ -89,43 +104,18 @@ const ChatBot = ({ darkMode }) => {
 
   const avatar = darkMode ? DarkProfile : LightProfile;
 
-  // ── tokens mirroring mk() from Profile.jsx ──────────────────────────────
-  const g = darkMode ? {
-    panel:       "bg-[#0a0a0a] border border-[#191919]",
-    header:      "border-b border-[#111111]",
-    aiBubble:    "bg-[#0d0d0d] border border-[#111111] text-[#c0c0c0]",
-    userBubble:  "bg-[#408A71] text-[#000000]",
-    inputBar:    "border-t border-[#111111]",
-    inputField:  "bg-[#0d0d0d] border border-[#1a1a1a] text-[#c0c0c0] placeholder-[#333333] focus:border-[#2a2a2a]",
-    sendBtn:     "bg-[#408A71] hover:bg-[#357a62] text-[#000000] disabled:opacity-30 disabled:cursor-not-allowed",
-    nameColor:   "text-[#e8e8e8]",
-    subColor:    "text-[#404040]",
-    brand:       "text-[#282828]",
-    closeBtn:    "text-[#444444] hover:text-[#888888] border border-[#1a1a1a] hover:border-[#333333]",
-    dot:         "bg-[#408A71]",
-    fab:         "bg-[#0a0a0a] border border-[#1a1a1a] text-[#686868] hover:text-[#b0b0b0] hover:border-[#3a3a3a]",
-    fabIcon:     "#408A71",
-    scrollThumb: "rgba(255,255,255,0.05)",
-    typingDot:   "bg-[#333333]",
-    shadow:      "shadow-[0_8px_40px_rgba(0,0,0,0.8)]",
-  } : {
-    panel:       "bg-[#f4f4f4] border border-[#e2e2e2]",
-    header:      "border-b border-[#ebebeb]",
-    aiBubble:    "bg-white border border-[#ebebeb] text-[#222222]",
-    userBubble:  "bg-[#111111] text-white",
-    inputBar:    "border-t border-[#ebebeb]",
-    inputField:  "bg-white border border-[#e2e2e2] text-[#222222] placeholder-[#bbbbbb] focus:border-[#aaaaaa]",
-    sendBtn:     "bg-[#111111] hover:bg-[#333333] text-white disabled:opacity-30 disabled:cursor-not-allowed",
-    nameColor:   "text-[#0a0a0a]",
-    subColor:    "text-[#aaaaaa]",
-    brand:       "text-[#cccccc]",
-    closeBtn:    "text-[#aaaaaa] hover:text-[#444444] border border-[#e2e2e2] hover:border-[#aaaaaa]",
-    dot:         "bg-[#408A71]",
-    fab:         "bg-[#f4f4f4] border border-[#d8d8d8] text-[#666666] hover:text-[#111111] hover:border-[#aaaaaa]",
-    fabIcon:     "#111111",
-    scrollThumb: "rgba(0,0,0,0.07)",
-    typingDot:   "bg-[#cccccc]",
-    shadow:      "shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
+  // â”€â”€ tokens mirroring mk() from Profile.jsx â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const g = {
+    panel: "bg-bg border border-line", header: "border-b border-line",
+    aiBubble: "bg-surface border border-line text-fg", userBubble: "bg-accent text-onaccent",
+    inputBar: "border-t border-line",
+    inputField: "bg-surface border border-line text-fg placeholder:text-muted focus:border-muted",
+    sendBtn: "bg-accent text-onaccent hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed",
+    nameColor: "text-fg", subColor: "text-muted", brand: "text-muted",
+    closeBtn: "text-muted hover:text-fg border border-line", dot: "bg-accent",
+    fab: "bg-surface border border-line text-fg shadow-lg hover:border-muted",
+    fabIcon: "currentColor", scrollThumb: "rgba(128,128,128,0.3)", typingDot: "bg-muted",
+    shadow: "shadow-2xl",
   };
 
   return (
@@ -137,38 +127,38 @@ const ChatBot = ({ darkMode }) => {
         .chatscroll { scrollbar-width: thin; scrollbar-color: ${g.scrollThumb} transparent; }
       `}</style>
 
-      {/* ── Panel ──────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
         className={`
           fixed right-4 sm:right-6 z-50
           w-[calc(100vw-2rem)] sm:w-[320px]
-          rounded-sm overflow-hidden
+          rounded-md overflow-hidden
           ${g.panel} ${g.shadow}
           transition-all duration-300 ease-out
           ${isOpen
             ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
             : "opacity-0 translate-y-4 scale-[0.97] pointer-events-none"}
         `}
-        style={{ bottom: "56px", maxHeight: "min(520px, calc(100vh - 80px))", display: "flex", flexDirection: "column" }}
+        style={{ bottom: "76px", maxHeight: "min(520px, calc(100vh - 80px))", display: "flex", flexDirection: "column" }}
       >
 
         {/* Header */}
         <div className={`flex items-center justify-between px-3.5 py-2.5 ${g.header}`}>
           <div className="flex items-center gap-2.5">
             <div className="relative flex-shrink-0">
-              <img src={avatar} alt="Mark" className="w-7 h-7 rounded-sm object-cover" />
+              <img src={avatar} alt="Mark" className="w-9 h-9 rounded-md object-cover" />
               <span className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ${g.dot}`} />
             </div>
             <div>
-              <p className={`text-[11px] font-semibold tracking-tight leading-tight ${g.nameColor}`}>
+              <p className={`text-[13px] font-semibold tracking-tight leading-tight ${g.nameColor}`}>
                 Mark's Assistant
               </p>
-              <p className={`text-[9px] tracking-[0.1em] uppercase ${g.subColor}`}>AI · Online</p>
+              <p className={`text-[10px] tracking-[0.1em] uppercase ${g.subColor}`}>AI · Online</p>
             </div>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className={`p-1 rounded-sm transition-all ${g.closeBtn}`}
+            className={`p-1 rounded-md transition-all ${g.closeBtn}`}
             aria-label="Close"
           >
             <ChevronDown size={11} />
@@ -184,12 +174,12 @@ const ChatBot = ({ darkMode }) => {
             <div key={i} className={`flex items-end gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
 
               {msg.role === "assistant" && (
-                <img src={avatar} alt="Mark" className="w-5 h-5 rounded-sm object-cover flex-shrink-0 mb-0.5" />
+                <img src={avatar} alt="Mark" className="w-5 h-5 rounded-md object-cover flex-shrink-0 mb-0.5" />
               )}
 
               <div
                 className={`
-                  max-w-[80%] px-3 py-2 text-[11px] leading-relaxed rounded-sm
+                  max-w-[80%] px-3 py-2 text-[13px] leading-relaxed rounded-md
                   ${msg.role === "user" ? g.userBubble : g.aiBubble}
                 `}
               >
@@ -201,8 +191,8 @@ const ChatBot = ({ darkMode }) => {
           {/* Typing indicator */}
           {isLoading && (
             <div className="flex items-end gap-2">
-              <img src={avatar} alt="Mark" className="w-5 h-5 rounded-sm object-cover flex-shrink-0" />
-              <div className={`px-3 py-2.5 rounded-sm ${g.aiBubble}`}>
+              <img src={avatar} alt="Mark" className="w-5 h-5 rounded-md object-cover flex-shrink-0" />
+              <div className={`px-3 py-2.5 rounded-md ${g.aiBubble}`}>
                 <div className="flex items-center gap-1">
                   {[0, 150, 300].map(delay => (
                     <span
@@ -231,7 +221,7 @@ const ChatBot = ({ darkMode }) => {
               placeholder="Ask something…"
               disabled={isLoading}
               className={`
-                flex-1 px-2.5 py-1.5 rounded-sm text-[11px] outline-none
+                flex-1 px-2.5 py-1.5 rounded-md text-[13px] outline-none
                 transition-all duration-150
                 ${g.inputField}
               `}
@@ -239,26 +229,26 @@ const ChatBot = ({ darkMode }) => {
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className={`w-7 h-7 rounded-sm flex items-center justify-center flex-shrink-0 transition-all duration-150 ${g.sendBtn}`}
+              className={`w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0 transition-all duration-150 ${g.sendBtn}`}
             >
               {isLoading ? <Loader2 size={11} className="animate-spin" /> : <Send size={11} />}
             </button>
           </div>
-          <p className={`text-[8px] text-center mt-2 tracking-[0.2em] uppercase ${g.brand}`}>
+          <p className={`text-[10px] text-center mt-2 tracking-[0.2em] uppercase ${g.brand}`}>
             Powered by Mark AI
           </p>
         </div>
       </div>
 
-      {/* ── FAB ──────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ FAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <button
         onClick={() => setIsOpen(v => !v)}
         aria-label="Toggle chat"
         className={`
           fixed bottom-5 right-4 sm:right-6 z-50
           flex items-center gap-1.5
-          px-3 py-1.5 rounded-sm
-          text-[11px] font-medium
+          px-4 py-2.5 rounded-full
+          text-[13px] font-medium
           transition-all duration-200
           ${g.fab}
         `}

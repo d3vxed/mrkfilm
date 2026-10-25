@@ -1,15 +1,5 @@
-
-import './App.css'
 import Profile from '@/Profile'
 
-function App() {
-
-
-  return (
-    <>
-<Profile />
-    </>
-  )
+export default function App() {
+  return <Profile />
 }
-
-export default App
