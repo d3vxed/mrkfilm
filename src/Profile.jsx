@@ -20,11 +20,13 @@ import Cursor from '@/components/Cursor';
 import Reveal, { Line } from '@/components/Reveal';
 import VideosPage from '@/pages/VideosPage';
 
-const EMAIL = 'quitalegmj24@gmail.com';
+const EMAIL = 'markquitaleg.dev@gmail.com';
 const rank = (a, b) => Number(b.featured) - Number(a.featured) || a.id - b.id;
 const films = projects.filter((p) => p.category === 'landscape').sort(rank);
 const shorts = projects.filter((p) => p.category === 'portrait').sort(rank);
-const FEATURED = films.slice(0, 3);
+const FEATURED = projects
+  .filter((p) => p.featured === true)
+  .slice(0, 3);
 const pad = (n) => String(n).padStart(2, '0');
 
 const techStack = [

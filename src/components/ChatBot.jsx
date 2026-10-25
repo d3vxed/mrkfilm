@@ -44,7 +44,7 @@ PROJECTS
 9. Pre-debut birthday video
 
 CONTACT
-Email: quitalegmj24@gmail.com
+Email: markquitaleg.dev@gmail.com
 Portfolio: https://mrkfilm.vercel.app
 
 RESPONSE STYLE

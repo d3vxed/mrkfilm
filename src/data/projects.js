@@ -1,5 +1,5 @@
 import ProjectVerticalnursing from '@/assets/nursing.png';
-import Project1 from '@/assets/UNEP-50-Logo-Blue-Eng-RGB.jpg';
+import Project1 from '@/assets/UNEP-50-Logo-Blue-Eng-RGB.png';
 import Project2 from '@/assets/unicharm.png';
 import Project3 from '@/assets/car-1.jfif';
 import Project4 from '@/assets/kld-clc.png';
@@ -15,7 +15,7 @@ import Project13 from '@/assets/student-of-life.png';
 import Project14 from '@/assets/real-estate.png';
 import Project15 from '@/assets/chatgpt.png';
 import Project16 from '@/assets/app-thumbnail.png';
-import Project17 from '@/assets/D3vxed.png';
+import Project17 from '@/assets/thumbnail-d3vxed.png';
 
 export const projects = [
     {

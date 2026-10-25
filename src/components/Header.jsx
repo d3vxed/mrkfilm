@@ -37,7 +37,7 @@ const Header = ({ home = true }) => {
           <button onClick={toggleDark} aria-label="Toggle theme" className="grid size-9 place-items-center border border-line transition-colors hover:bg-fg hover:text-bg">
             {darkMode ? <Sun size={15} /> : <Moon size={15} />}
           </button>
-          <a href="mailto:quitalegmj24@gmail.com?subject=Inquiry from Portfolio&body=Hello Mark," className="btn !h-9 !px-4 max-sm:hidden">Hire me</a>
+          <a href="mailto:markquitaleg.dev@gmail.com?subject=Inquiry from Portfolio&body=Hello Mark," className="btn !h-9 !px-4 max-sm:hidden">Hire me</a>
           {home && (
             <button onClick={() => setOpen((o) => !o)} aria-label="Menu" className="grid size-9 place-items-center border border-line lg:hidden">
               {open ? <X size={16} /> : <Menu size={16} />}
